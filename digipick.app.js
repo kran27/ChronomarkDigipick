@@ -43,7 +43,7 @@ function dK(i, oX, oY, s) { // draw key: index, offset x, offset y, scale
     g.setColor(.66, .66, .66).drawCircleAA(cX, cY, (oR - 8) * s);
     g.setColor(-1); // -1 is white
     for (let j = 0; j < 32; j++) {
-        if (kA[i][j]) {
+        if (kA[i] & (1 << j)) {
             const sA = (j - .5) * cA; // start angle
             dP(.08, sA, sA + cA, oR, iR, oX, oY, s, true);
         }
@@ -69,7 +69,7 @@ function dC(r, h) {// draw chunks: radius, is highlighted
     g.setColor(f, f, f + a);
 
     for (let i = 0; i < 32; i++) {
-        if (bA[r - 1][i]) {
+        if (bA[r - 1] & (1 << i)) {
             const sA = (i - .5) * cA;
             dP(.008 + .004 * r, sA, sA + cA, oR, iR, 0, 0, 1, false);
         }
@@ -81,7 +81,7 @@ function cF(k, b) { // can fit: key, block
         let f = true;
         for (let i = 0; i < 32; i++) { // check all indices
             const j = (i + o) % 32;
-            if (k[i] && b[j]) {
+            if ((k & (1 << i)) && (b & (1 << j))) {
                 f = false;
                 break;
             }
@@ -94,7 +94,24 @@ function cF(k, b) { // can fit: key, block
 }
 
 // blocks
-var kA = [, , , ,].fill().map(() => new Array(32).fill().map(() => Math.random() > .8)), bA = [, , , ,].fill().map(() => new Array(32).fill().map(() => Math.random() > .2));
+var kA, bA;
+
+function gL() {
+    kA = [, , , ,].fill(0);
+    bA = [, , , ,].fill(0);
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 32; j++) {
+            if (Math.random() > .8) {
+                kA[i] |= (1 << j);
+            }
+            if (Math.random() > .2) {
+                bA[i] |= (1 << j);
+            }
+        }
+    }
+}
+
+gL();
 
 // in game, active key
 var iG = true, aK = 0;
@@ -124,7 +141,7 @@ setWatch(_ => {
     // move elements in keyArray forward (last element becomes first)
     if (iG) {
         eK();
-        kA[aK].unshift(kA[aK].pop());
+        kA[aK] = ((kA[aK] << 1) | (kA[aK] >>> 31)) >>> 0; // Rotate left
         dK(aK, 0, 0, 1);
     }
     else {
@@ -135,10 +152,9 @@ setWatch(_ => {
 }, BTN1, { repeat: true, edge: "rising" });
 
 setWatch(_ => {
-    // move elements in keyArray backward (first element becomes last)
     if (iG) {
         eK();
-        kA[aK].push(kA[aK].shift());
+        kA[aK] = ((kA[aK] >>> 1) | (kA[aK] << 31)) >>> 0;
         dK(aK, 0, 0, 1);
     }
     else {
@@ -158,8 +174,7 @@ setWatch(_ => {
 
 setWatch(_ => {
     if (iG) {
-        kA = [, , , ,].fill().map(() => new Array(32).fill().map(() => Math.random() > .8))
-        bA = [, , , ,].fill().map(() => new Array(32).fill().map(() => Math.random() > .2))
+        gL();
     }
     else {
         aK = 3;
