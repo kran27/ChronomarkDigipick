@@ -1,7 +1,7 @@
 //some of this code is pretty ugly, but it's that way to save space
 //comments are used since they're removed in the minification process
 var lI = 0; // last inner radius
-const c = 119, cA = Math.PI / 16; // center, cy=hunk angle
+const c = 119, cA = Math.PI / 16; // center, chunk angle
 
 function dP(a, sA, eA, oR, iR, oX, oY, s, iK) { // draw polygon: angle, start angle, end angle, outer radius, inner radius, offset x, offset y, scale, is key
     const cS = Math.cos(sA + a), sS = Math.sin(sA + a), cC = Math.cos((sA + eA) / 2), sC = Math.sin((sA + eA) / 2), cE = Math.cos(eA - a), sE = Math.sin(eA - a);
@@ -29,7 +29,7 @@ function dP(a, sA, eA, oR, iR, oX, oY, s, iK) { // draw polygon: angle, start an
         (c + iR * cS) * s + oX,
         (c + iR * sS) * s + oY
     ]);
-    g.fillPolyAA(p, true);
+    g.fillPolyAA(p, 1);
 }
 
 function dK(i, oX, oY, s) { // draw key: index, offset x, offset y, scale
@@ -45,7 +45,7 @@ function dK(i, oX, oY, s) { // draw key: index, offset x, offset y, scale
     for (let j = 0; j < 32; j++) {
         if (kA[i] & (1 << j)) {
             const sA = (j - .5) * cA; // start angle
-            dP(.08, sA, sA + cA, oR, iR, oX, oY, s, true);
+            dP(.08, sA, sA + cA, oR, iR, oX, oY, s, 1);
         }
     }
 }
@@ -55,7 +55,7 @@ function eK() { // erase key, draws over key with background colour
     g.setColor(0);
     for (let i = 0; i < 16; i++) {
         const sA = i * (cA * 2);
-        dP(0, sA, sA + cA * 2, oR, iR, 0, 0, 1, true);
+        dP(0, sA, sA + cA * 2, oR, iR, 0, 0, 1, 1);
     }
 }
 
@@ -65,32 +65,24 @@ function dC(r, h) {// draw chunks: radius, is highlighted
     lI = iR;
 
     const f = r == 0 ? 0 : r == 1 ? .66 : 1 / r; // fill colour
-    const a = h ? .33 : 0; // ideally i'd save space by not declaring a, but that fucks up colours somehow
+    const a = h ? .33 : 0; // ideally i'd save a few chars not declaring a, but that fucks up colours somehow
     g.setColor(f, f, f + a);
 
     for (let i = 0; i < 32; i++) {
         if (bA[r - 1] & (1 << i)) {
             const sA = (i - .5) * cA;
-            dP(.008 + .004 * r, sA, sA + cA, oR, iR, 0, 0, 1, false);
+            dP(.008 + .004 * r, sA, sA + cA, oR, iR, 0, 0, 1, 0);
         }
     }
 }
 
-function cF(k, b) { // can fit: key, block
-    for (let o = 0; o < 32; o++) { // go through all offsets
-        let f = true;
-        for (let i = 0; i < 32; i++) { // check all indices
-            const j = (i + o) % 32;
-            if ((k & (1 << i)) && (b & (1 << j))) {
-                f = false;
-                break;
-            }
-        }
-        if (f) {
-            return true;
+function cF(k, b) {
+    for (let o = 0; o < 32; o++) {
+        if (!((k >>> o | k << (32 - o)) & b)) {
+            return 1;
         }
     }
-    return false;
+    return 0;
 }
 
 // blocks
@@ -114,7 +106,7 @@ function gL() {
 gL();
 
 // in game, active key
-var iG = true, aK = 0;
+var iG = 1, aK = 0;
 
 function d() { // redraw entire screen
     g.clear();
@@ -138,18 +130,17 @@ d();
 //Dickens.loadSurround();
 
 setWatch(_ => {
-    // move elements in keyArray forward (last element becomes first)
     if (iG) {
         eK();
-        kA[aK] = ((kA[aK] << 1) | (kA[aK] >>> 31)) >>> 0; // Rotate left
+        kA[aK] = ((kA[aK] << 1) | (kA[aK] >>> 31)) >>> 0;
         dK(aK, 0, 0, 1);
     }
     else {
         aK = 1;
-        iG = true;
+        iG = 1;
         d();
     }
-}, BTN1, { repeat: true, edge: "rising" });
+}, BTN1, { repeat: 1, edge: 1 });
 
 setWatch(_ => {
     if (iG) {
@@ -159,10 +150,10 @@ setWatch(_ => {
     }
     else {
         aK = 0;
-        iG = true;
+        iG = 1;
         d();
     }
-}, BTN4, { repeat: true, edge: "rising" });
+}, BTN4, { repeat: 1, edge: 1 });
 
 setWatch(_ => {
     if (!iG) {
@@ -170,7 +161,7 @@ setWatch(_ => {
     }
     iG = !iG;
     d();
-}, BTN3, { repeat: true, edge: "rising" });
+}, BTN3, { repeat: 1, edge: 1 });
 
 setWatch(_ => {
     if (iG) {
@@ -178,7 +169,7 @@ setWatch(_ => {
     }
     else {
         aK = 3;
-        iG = true;
+        iG = 1;
     }
     d();
-}, BTN2, { repeat: true, edge: "falling" });
+}, BTN2, { repeat: 1, edge: 1 });
