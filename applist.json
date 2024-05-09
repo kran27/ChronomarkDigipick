@@ -1,0 +1,47 @@
+{
+    "name": [
+        "settings",
+        "torch",
+        "sensors",
+        "music",
+        "weather",
+        "moon",
+        "message",
+        "digipick"
+    ],
+    "icon": [
+        "menu",
+        "torch",
+        "sine",
+        "timer",
+        "cloud",
+        "moon",
+        "message",
+        "digipick"
+    ],
+    "nameTest": [
+        "settings",
+        "torch",
+        "sensors",
+        "timer",
+        "stopwatch",
+        "music",
+        "weather",
+        "moon",
+        "message",
+        "moon"
+    ],
+    "iconTest": [
+        "menu",
+        "torch",
+        "sine",
+        "timer",
+        "stopwatch",
+        "music",
+        "cloud",
+        "moon",
+        "message",
+        "moon"
+    ],
+    "default": null
+}
