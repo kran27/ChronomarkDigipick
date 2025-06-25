@@ -1,7 +1,9 @@
 //some of this code is pretty ugly, but it's that way to save space
 //comments are used since they're removed in the minification process
 // center, chunk angle
-var m = Math, c = 119, cA = m.PI / 16, lI = 0, dP = (a, sA, eA, oR, iR, oX, oY, s, iK) => { // draw polygon: angle, start angle, end angle, outer radius, inner radius, offset x, offset y, scale, is key
+// noinspection EqualityComparisonWithCoercionJS
+
+var D = Dickens, m = Math, c = 119, cA = m.PI / 16, lI = 81, dP = (a, sA, eA, oR, iR, oX, oY, s, iK) => { // draw polygon: angle, start angle, end angle, outer radius, inner radius, offset x, offset y, scale, is key
     var cS = m.cos(sA + a), sS = m.sin(sA + a), cC = m.cos((sA + eA) / 2), sC = m.sin((sA + eA) / 2), cE = m.cos(eA - a), sE = m.sin(eA - a)
     // cosines and sines of the start, center, and end angles
     ,p = [
@@ -11,14 +13,14 @@ var m = Math, c = 119, cA = m.PI / 16, lI = 0, dP = (a, sA, eA, oR, iR, oX, oY, 
     ]
 
     if (!iK) {
-        p = p.concat([
+        p.push(
             // Outer radius, center
             (c + oR * cC) * s + oX,
             (c + oR * sC) * s + oY
-        ])
+        )
     }
 
-    p = p.concat([
+    p.push(
         // Outer radius, end angle
         (c + oR * cE) * s + oX,
         (c + oR * sE) * s + oY,
@@ -28,12 +30,11 @@ var m = Math, c = 119, cA = m.PI / 16, lI = 0, dP = (a, sA, eA, oR, iR, oX, oY, 
         // Inner radius, start angle
         (c + iR * cS) * s + oX,
         (c + iR * sS) * s + oY
-    ])
+    )
     g.fillPolyAA(p, 1)
 }, dK = (i, oX, oY, s) => { // draw key: index, offset x, offset y, scale
-    var oR = c - 27 // outer radius
-    var iR = oR * .88 // inner radius
-    lI = iR
+    var oR = 92
+    var iR = 81
 
     var cX = c * s + oX, cY = c * s + oY // center x, center y
 
@@ -69,13 +70,10 @@ var m = Math, c = 119, cA = m.PI / 16, lI = 0, dP = (a, sA, eA, oR, iR, oX, oY, 
         }
     }
 }, fO = (k, b, o) => {
-    if (!((k >>> o | k << (32 - o)) & b)) {
-        return 1
-    }
-    return 0
+    return (k >>> o | k << (32 - o)) & b ? 0 : 1
 }, cF = (k, b) => {
     for (var o = 0; o < 32; o++) {
-        if (fO(k, b, o)) {
+        if (!((k >>> o | k << (32 - o)) & b)) {
             return 1
         }
     }
@@ -84,21 +82,24 @@ var m = Math, c = 119, cA = m.PI / 16, lI = 0, dP = (a, sA, eA, oR, iR, oX, oY, 
     if (fO(kA[aK], bA[0], 0)){
         bA[0] |= kA[aK]
         if(bA[0] == -1){
-            // block is full, remove and cycle rest of elements forward. if the rest of the blocks are 0, YOU WIN
+            // end game if all blocks are filled
+            if (bA[1] == 0) {
+                load('digipick.app.js')
+            }
             bA[0] = bA[1]
-            bA[1] = bA[2]
-            bA[2] = bA[3]
+            bA[1] = bA[2] || 0
+            bA[2] = bA[3] || 0
             bA[3] = 0
         }
-        kA[aK] = 0
-        aK++
-        aK%=4
+        kA = rO(kA, aK)
+        // if aK is outside of the possible indices, reduce it
+        if(aK >= kA.length){
+            aK--
+        }
         d()
-        return 1
     }
-    return 0
 }, kA, bA, gL = (d) => {
-    //generate level (temporary, random values for testing) // kA = key/pick array, bA = blocks/rings array
+    //generate level // kA = key/pick array, bA = blocks/rings array
     const R = [], P = [], L = dL[d]
     while (R.length < L.r) {
         R.push(-1)
@@ -120,11 +121,14 @@ var m = Math, c = 119, cA = m.PI / 16, lI = 0, dP = (a, sA, eA, oR, iR, oX, oY, 
         P.push(p)
     }
     s(P)
-    kA = P.map(pick => pick.reduce((current, bit) => current | (1 << bit), 0))
+    kA = P.map(pick => mR(pick.reduce((current, bit) => current | (1 << bit), 0), m.floor(m.random() * 32)))
     bA= R
-}, iG = 0, mM = 1, aK = 0, d = _ => { // redraw entire screen // in game, active key
+}, sI = 0, pI = 0, iG = 0, mM = 1, aK = 0, d = _ => { // redraw entire screen // selected index, page index, in game, active ke
     g.clear()
+    lI = 81
     if (iG) {
+        D.buttonIcons=["right","tick","circle","left"]
+        D.loadSurround()
         dK(aK, 0, 0, 1)
         dC(bA[0], 1, cF(kA[aK], bA[0]))
         dC(bA[1], 2, cF(kA[aK], bA[1]))
@@ -132,12 +136,14 @@ var m = Math, c = 119, cA = m.PI / 16, lI = 0, dP = (a, sA, eA, oR, iR, oX, oY, 
         dC(bA[3], 4, cF(kA[aK], bA[3]))
     }
     else {
-        dK(0, 18, 18, .4)
-        dK(1, 128, 18, .4)
-        dK(2, 18, 128, .4)
-        dK(3, 128, 128, .4)
+        var i = sI == 0 ? "down" : "up", a = sI * 68
+        D.buttonIcons=["right","tick",i,"left"]
+        D.loadSurround()
+        dK(pI * 2, 32, 32, .45)
+        dK(pI * 2 + 1, 100, 100, .45)
+        g.fillCircle(85 + a, 85 + a, 20)
+        g.drawCircleAA(85 + a, 85 + a, 21)
     }
-    lI = 0
 }, dL = {
     0: {r: 2, rP: {c: 0, s: []}, p: [2, 2, 2, 3]},
     1: {r: 2, rP: {c: 2, s: [2, 3]}, p: [2, 2, 2, 3, 3, 4]},
@@ -176,33 +182,32 @@ var m = Math, c = 119, cA = m.PI / 16, lI = 0, dP = (a, sA, eA, oR, iR, oX, oY, 
     iG = 1
     mM = 0
     d()
-    Dickens.buttonIcons=["right","tick","circle","left"]
-    Dickens.loadSurround()
-}, sM = _ => {
-    const a = {
+    D.buttonIcons=["right","tick","circle","left"]
+    D.loadSurround()
+}, sM = _ => E.showMenu({
         '': {
-            title: 'Digipick Simulator',
+            title: 'Select Difficulty',
             selected: 0
         },
         'Easy': () => sG(0),
         'Advanced': () => sG(1),
         'Expert': () => sG(2),
         'Master': () => sG(3)
-    };
-    return E.showMenu(a, () => load('clock.app.js'))
-}
+    }, () => load('clock.app.js')),
+mL = (a, o) => ((a >>> o) | (a << 32 - o)),
+mR = (a, o) => ((a << o) | (a >>> 32 - o)),
+rO = (a, o) => a.slice(0, o).concat(a.slice(o + 1))
 
 sM()
 
 setWatch(_ => { // right
     if (iG) {
         eK()
-        kA[aK] = ((kA[aK] << 1) | (kA[aK] >>> 31))
+        kA[aK] = mR(kA[aK], 1)
         dK(aK, 0, 0, 1)
     }
     else if (!mM) {
-        aK = 1
-        iG = 1
+        pI = m.min(pI + 1, kA.length / 2 - 1)
         d()
     }
 }, BTN1, { repeat: 1, edge: 1 })
@@ -210,22 +215,22 @@ setWatch(_ => { // right
 setWatch(_ => { // left
     if (iG) {
         eK()
-        kA[aK] = ((kA[aK] >>> 1) | (kA[aK] << 31))
+        kA[aK] = mL(kA[aK], 1)
         dK(aK, 0, 0, 1)
     }
     else if (!mM) {
-        aK = 0
-        iG = 1
+        pI = m.max(pI - 1, 0)
         d()
     }
 }, BTN4, { repeat: 1, edge: 1 })
 
 setWatch(_ => { // circle
-    if (!iG) {
-        aK = 2
+    if (!iG && !mM) {
+        sI = !sI
+        d()
     }
-    if (!mM){
-        iG = !iG
+    else if (!mM){
+        iG = 0
         d()
     }
 }, BTN3, { repeat: 1, edge: 1 })
@@ -235,7 +240,7 @@ setWatch(_ => { // tick
         pK()
     }
     else if (!mM) {
-        aK = 3
+        aK = pI * 2 + sI
         iG = 1 
         d()
     }

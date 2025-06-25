@@ -17,7 +17,7 @@
         "cloud",
         "moon",
         "message",
-        "digipick"
+        "circle"
     ],
     "nameTest": [
         "settings",
@@ -28,8 +28,7 @@
         "music",
         "weather",
         "moon",
-        "message",
-        "moon"
+        "message"
     ],
     "iconTest": [
         "menu",
@@ -40,8 +39,7 @@
         "music",
         "cloud",
         "moon",
-        "message",
-        "moon"
+        "message"
     ],
     "default": null
 }
