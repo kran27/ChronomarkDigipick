@@ -3,7 +3,7 @@
 // center, chunk angle
 // noinspection EqualityComparisonWithCoercionJS
 
-var D = Dickens, m = Math, c = 119, cA = m.PI / 16, lI = 81, dP = (a, sA, eA, oR, iR, oX, oY, s, iK) => { // draw polygon: angle, start angle, end angle, outer radius, inner radius, offset x, offset y, scale, is key
+var D = Dickens, m = Math, c = 119, cA = m.PI / 16, lI = 81, bP = { repeat: 1, edge: 1 }, dP = (a, sA, eA, oR, iR, oX, oY, s, iK) => { // draw polygon: angle, start angle, end angle, outer radius, inner radius, offset x, offset y, scale, is key
     var cS = m.cos(sA + a), sS = m.sin(sA + a), cC = m.cos((sA + eA) / 2), sC = m.sin((sA + eA) / 2), cE = m.cos(eA - a), sE = m.sin(eA - a)
     // cosines and sines of the start, center, and end angles
     ,p = [
@@ -84,7 +84,11 @@ var D = Dickens, m = Math, c = 119, cA = m.PI / 16, lI = 81, dP = (a, sA, eA, oR
         if(bA[0] == -1){
             // end game if all blocks are filled
             if (bA[1] == 0) {
-                load('digipick.app.js')
+                // brief win cue, then reload to the difficulty menu
+                mM = 1 // freeze input during the cue
+                g.clear()
+                g.setColor(-1).setFontAlign(0, 0).setFont("6x8", 3).drawString("UNLOCKED", c, c)
+                return setTimeout(_ => load('digipick.app.js'), 1200)
             }
             bA[0] = bA[1]
             bA[1] = bA[2] || 0
@@ -116,7 +120,7 @@ var D = Dickens, m = Math, c = 119, cA = m.PI / 16, lI = 81, dP = (a, sA, eA, oR
             P.push(p)
         }
     }
-    for (let i = 0; i < L.rP.count; i++) {
+    for (let i = 0; i < L.rP.c; i++) {
         const pS = L.rP.s[m.floor(m.random() * L.rP.s.length)], p = mP(pS, -1)
         P.push(p)
     }
@@ -136,6 +140,7 @@ var D = Dickens, m = Math, c = 119, cA = m.PI / 16, lI = 81, dP = (a, sA, eA, oR
         dC(bA[3], 4, cF(kA[aK], bA[3]))
     }
     else {
+        pI = m.min(pI, m.ceil(kA.length / 2) - 1) // keep page in range after keys are removed
         var i = sI == 0 ? "down" : "up", a = sI * 68
         D.buttonIcons=["right","tick",i,"left"]
         D.loadSurround()
@@ -158,11 +163,9 @@ var D = Dickens, m = Math, c = 119, cA = m.PI / 16, lI = 81, dP = (a, sA, eA, oR
     }
     return b
 }, mP = (s, r) => {
-    const p = []
+    const p = [], a = vB(r & 0x55555555) // r is constant in the loop, so compute the bit list once
     while (p.length < s) {
-        const a = vB(r & 0x55555555)
-        const n = a[m.floor(m.random() * a.length)]
-        p.push(n)
+        p.push(a[m.floor(m.random() * a.length)])
     }
     return p
 }, s = (a) => {
@@ -207,10 +210,10 @@ setWatch(_ => { // right
         dK(aK, 0, 0, 1)
     }
     else if (!mM) {
-        pI = m.min(pI + 1, kA.length / 2 - 1)
+        pI = m.min(pI + 1, m.ceil(kA.length / 2) - 1)
         d()
     }
-}, BTN1, { repeat: 1, edge: 1 })
+}, BTN1, bP)
 
 setWatch(_ => { // left
     if (iG) {
@@ -222,7 +225,7 @@ setWatch(_ => { // left
         pI = m.max(pI - 1, 0)
         d()
     }
-}, BTN4, { repeat: 1, edge: 1 })
+}, BTN4, bP)
 
 setWatch(_ => { // circle
     if (!iG && !mM) {
@@ -233,15 +236,16 @@ setWatch(_ => { // circle
         iG = 0
         d()
     }
-}, BTN3, { repeat: 1, edge: 1 })
+}, BTN3, bP)
 
 setWatch(_ => { // tick
     if (iG) {
         pK()
     }
-    else if (!mM) {
+    else if (!mM && kA[pI * 2 + sI]) {
+        // guard against the empty slot on an odd last page (decoys can make pick count odd)
         aK = pI * 2 + sI
-        iG = 1 
+        iG = 1
         d()
     }
-}, BTN2, { repeat: 1, edge: 1 })
+}, BTN2, bP)
